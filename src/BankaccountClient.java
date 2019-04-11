@@ -123,14 +123,15 @@ public class BankaccountClient {
 						System.out.println(result);
 						break;
 
-					case 6:
+				      case 6:
 						System.out.println("Enter your account id");
 						long accId3=Integer.parseInt(reader.readLine());
 
 						 double balanceNew=service.checkbalance(accId3);
 						 System.out.println(balanceNew);
 						 break;
-					case 7:List<BankAccount> accountList=service.findAllbankAccounts();
+
+				      case 7:List<BankAccount> accountList=service.findAllbankAccounts();
 						for(BankAccount a:accountList)
 						{
 							System.out.println(a);
@@ -155,7 +156,7 @@ public class BankaccountClient {
 							}
 						break;
 				
-				    case 9:System.out.println("Enter account id");
+				     case 9:  System.out.println("Enter account id");
 						long accId2=Integer.parseInt(reader.readLine());
 						try {
 						BankAccount bankAccount=service.searchAccount(accId2);
@@ -168,7 +169,7 @@ public class BankaccountClient {
 						}
 						break;
 
-				case 10:System.out.println("Thanks for banking");
+				   case 10:  System.out.println("Thanks for banking");
 						System.exit(0);
 				
 				

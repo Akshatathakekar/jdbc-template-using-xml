@@ -8,9 +8,9 @@ import java.util.List;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.capgemini.bankappDao.*;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper; 
-
-
+import com.capgemini.bankapp.exception.*;
 import com.capgemini.bankappDao.BankAccountDao;
 import com.capgemini.model.BankAccount;
 
@@ -58,23 +58,27 @@ public class BankAccountDaoImpl implements BankAccountDao {
 	
 
 	@Override
-	public double getBalance(long accountId)  {
-		// TODO Auto-generated method stub
-		String query = "select account_balance from bankaccount where account_id=" + accountId;
+	public double getBalance(long accountId) throws BankAccountNotFoundException  {
+		
+		String query = "select account_balance from bankaccount where account_id="+ accountId;
 		double balance = -1;
+		try
+		{
+			balance=jdbcTemplate.queryForObject(query,(rs,rowNum)->
+			{
+				double accountBalance = rs.getDouble(1);
+				return accountBalance ;
 
+			});
 	
-		try (
-			PreparedStatement statement = connection.prepareStatement(query);
-			ResultSet result = statement.executeQuery();) {
-			if(result.next())
-			balance = result.getDouble(1);
-			
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		catch(EmptyResultDataAccessException ex){
+			BankAccountNotFoundException  re= new BankAccountNotFoundException("Bank Account not Found");
+			ex.initCause(re);
+			throw re;
+
+		}
+		
 		return balance;
 
 	} 
@@ -83,8 +87,8 @@ public class BankAccountDaoImpl implements BankAccountDao {
 	@Override
 	public void updateBalance(long accountId, double newBalance) {
 				
-		String query="update bankaccount set account_balance=? where account_id=?";
-		jdbcTemplate.update(query);	
+		String query="update bankaccount set account_balance=? where account_id="+accountId;
+		jdbcTemplate.update(query,newBalance);	
 
 	}
 
@@ -102,8 +106,8 @@ public class BankAccountDaoImpl implements BankAccountDao {
 				String name=rs.getString(2);
 				String type=rs.getString(3);
 				double balance=rs.getDouble(4);
-				BankAccount bank=new BankAccount(id,name,type,balance);
-				return bank;
+				BankAccount bankAccount=new BankAccount(id,name,type,balance);
+				return bankAccount;
 
 		});
 	
@@ -113,9 +117,12 @@ public class BankAccountDaoImpl implements BankAccountDao {
 	}
 
 	@Override
-	public BankAccount searchAccount(long accountId) {
+	public BankAccount searchAccount(long accountId)throws BankAccountNotFoundException {
 		String query="select * from bankaccount where account_id=?";
-		BankAccount bank=jdbcTemplate.queryForObject(query,new Object[]{accountId} ,(rs,rowNum)->
+		BankAccount bank=null;
+		try
+		{
+		bank=jdbcTemplate.queryForObject(query,new Object[]{accountId} ,(rs,rowNum)->
 		{
 			
 				long id=rs.getInt(1);
@@ -126,6 +133,14 @@ public class BankAccountDaoImpl implements BankAccountDao {
 				 return bankAccount;
 		
 		});
+		}catch(EmptyResultDataAccessException ex){
+			BankAccountNotFoundException  re= new BankAccountNotFoundException("Bank Account not Found");
+			ex.initCause(re);
+			throw re;
+
+		}
+	
+		
                 return bank;          
        
 	}
